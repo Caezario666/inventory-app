@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Container untuk aplikasi backend (Express.js)
+  backend:
+    image: node:16
+    container_name: inventory-backend
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"  # Port untuk backend
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db  # Nama service dari container database
+      - DB_PORT=5432  # Port default PostgreSQL di container (jangan ganti)
+      - DB_NAME=inventory_db
+      - DB_USER=root
+      - DB_PASS=rootpassword
+    depends_on:
+      - db  # Menunggu database siap
+
+  # Container untuk PostgreSQL database
+  db:
+    image: postgres:latest
+    container_name: inventory-db
+    environment:
+      - POSTGRES_DB=inventory_db
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=rootpassword
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # Menyimpan data database di volume terpisah
+    ports:
+      - "5433:5432"  # Port host diubah ke 5433, tapi port container tetap 5432
+    networks:
+      - backend-network
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge
